@@ -1,3 +1,3 @@
 source 'https://rubygems.org'
 
-gem 'awk-sdk'
+gem 'aws-sdk-core', '>= 2.0'
