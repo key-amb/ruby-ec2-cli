@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require 'aws-sdk-core'
+
+ec2 = Aws::EC2::Client.new
+
+ec2.describe_instances.reservations[0].instances.each do |i|
+  name_tags = i.tags.select { |t| t.key == 'Name' }
+  puts [name_tags[0].value, i.instance_id, i.private_ip_address, i.public_ip_address].join("\t")
+end
+
