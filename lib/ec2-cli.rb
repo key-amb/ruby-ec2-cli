@@ -26,6 +26,7 @@ class EC2Cli < Thor
       instance_ids: [options['instance-id']],
       dry_run:      options['dry-run'],
     })
+    puts 'Successfully started instance.'
   end
 
   desc 'stop', 'Stop an instance'
@@ -36,6 +37,7 @@ class EC2Cli < Thor
       instance_ids: [options['instance-id']],
       dry_run:      options['dry-run'],
     })
+    puts 'Successfully stopped instance.'
   end
 
   desc 'create-ami', 'Create AMI from an instance'
@@ -62,6 +64,7 @@ class EC2Cli < Thor
         { device_name: '/dev/sdp', virtual_name: 'ephemeral3' },
       ],
     })
+    puts 'Successfully created AMI.'
   end
 
   private
