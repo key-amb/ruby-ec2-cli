@@ -128,7 +128,7 @@ class EC2Cli < Thor
     @cli ||= Aws::EC2::Client.new
   end
 
-  def config(path: ENV['EC2CLI_CONFIG_PATH'])
+  def config(path: ENV['EC2CLI_CONFIG_PATH'] || 'config/ec2-cli.toml')
     @config ||= OpenStruct.new( TOML.load_file(path) )
   end
 end
