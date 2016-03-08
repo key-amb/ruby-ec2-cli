@@ -1,5 +1,7 @@
 require 'aws-sdk-core'
+require 'ostruct'
 require 'thor'
+require 'toml'
 
 require 'ec2-cli/instance'
 
@@ -35,6 +37,28 @@ class EC2Cli < Thor
       dry_run:      options['dry-run'],
     })
     puts 'Successfully stopped instance.'
+  end
+
+  desc 'launch', 'Run Instance from an AMI'
+  option 'ami-id', :required => true, :aliases => 'i'
+  option 'instance-type', :aliases => 't'
+  option 'availability-zone', :aliases => 'az'
+  option 'security-groups', :type => :array, :aliases => 'sg'
+  option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
+  def launch
+    instance_type = options['instance-type'] || config().instance['default_instance_type']
+    az = options['availability-zone'] || config().vpc['default_availability_zone']
+    sec_groups = [ config().instance['default_security_group'] ]
+    sec_groups.concat(options['security-groups']) if options['security-groups']
+    cli().run_instances({
+      image_id:           options['ami-id'],
+      instance_type:      instance_type,
+      security_group_ids: sec_groups,
+      min_count: 1,
+      max_count: 1,
+      dry_run: options['dry-run'],
+    })
+    puts 'Successfully launched instance.'
   end
 
   desc 'create-ami', 'Create AMI from an instance'
@@ -79,5 +103,9 @@ class EC2Cli < Thor
 
   def cli
     @cli ||= Aws::EC2::Client.new
+  end
+
+  def config(path: ENV['EC2CLI_CONFIG_PATH'])
+    @config ||= OpenStruct.new( TOML.load_file(path) )
   end
 end
