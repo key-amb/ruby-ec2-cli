@@ -12,12 +12,16 @@ ec2-cli list
 ec2-cli start -i <INSTANCE_ID> [-n|--dry-run]
 ec2-cli stop  -i <INSTANCE_ID> [-n|--dry-run]
 
-# Create AMI
-ec2-cli create-ami -i <INSTANCE_ID> [-n|--dry-run]
-
 # Launch/Terminate instance
 ec2-cli launch -i <AMI_ID> -N <NAME_TAG> [-az AZ] [-n|--dry-run]
 ec2-cli terminate -i <INSTANCE_ID> [-n|--dry-run]
+
+# Create/List AMI
+ec2-cli create-ami -i <INSTANCE_ID> [-n|--dry-run]
+ec2-cli list-ami
+
+# Show help
+ec2-cli help
 ```
 
 # Configure
