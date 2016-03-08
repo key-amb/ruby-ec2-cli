@@ -11,21 +11,37 @@ class EC2Cli < Thor
       end
     end
 
-    def self.fetch(id: nil, cli: nil)
+    def self.fetch_by_id(id: nil, cli: nil)
       raise 'No id specified!' unless id
       resp = cli.describe_instances({
         instance_ids: [id]
       })
       i = resp.reservations[0].instances[0]
-      name_tags = i.tags.select { |t| t.key == 'Name' }
-      new({
-        instance_id:      id,
-        name:             name_tags[0].value,
-        status:           i.state.name,
-        ipaddress:        i.private_ip_address,
-        public_ipaddress: i.public_ip_address,
-        instance_type:    i.instance_type,
-      })
+      new( Util.prepare_instance_params(i) )
+    end
+
+    def self.fetch(cli: nil)
+      results = []
+      cli.describe_instances.reservations[0].instances.each do |i|
+        results.push(
+          new( Util.prepare_instance_params(i) )
+        )
+      end
+      results
+    end
+
+    module Util
+      def self.prepare_instance_params(instance)
+        name_tags = instance.tags.select { |t| t.key == 'Name' }
+        {
+          instance_id:      instance.instance_id,
+          name:             name_tags[0].value,
+          status:           instance.state.name,
+          ipaddress:        instance.private_ip_address,
+          public_ipaddress: instance.public_ip_address,
+          instance_type:    instance.instance_type,
+        }
+      end
     end
   end
 end

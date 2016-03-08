@@ -9,12 +9,9 @@ class EC2Cli < Thor
 
   desc 'list', 'List instances'
   def list
-    cli().describe_instances.reservations[0].instances.each do |i|
-      name_tags = i.tags.select { |t| t.key == 'Name' }
-      puts [
-        name_tags[0].value, i.instance_id, i.state.name,
-        i.private_ip_address, i.public_ip_address
-      ].join("\t")
+    instances = EC2Cli::Instance.fetch(cli: cli())
+    instances.each do |i|
+      puts [i.name, i.instance_id, i.status, i.ipaddress, i.public_ipaddress].join("\t")
     end
   end
 
@@ -44,7 +41,7 @@ class EC2Cli < Thor
   option 'instance-id', :required => true, :aliases => 'i'
   option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
   def create_ami
-    instance = EC2Cli::Instance.fetch(
+    instance = EC2Cli::Instance.fetch_by_id(
       cli: cli(),
       id:  options['instance-id'],
     )
