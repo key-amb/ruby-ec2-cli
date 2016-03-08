@@ -64,6 +64,17 @@ class EC2Cli < Thor
     puts 'Successfully created AMI.'
   end
 
+  desc 'list-ami', 'List AMIs'
+  def list_ami
+    cli().describe_images(
+      owners: [ENV['AWS_ACCOUNT_ID']],
+    ).images.each do |img|
+      puts [
+        img.image_id, img.name, img.state, img.creation_date
+      ].join("\t")
+    end
+  end
+
   private
 
   def cli
