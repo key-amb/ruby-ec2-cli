@@ -41,6 +41,7 @@ class EC2Cli < Thor
 
   desc 'launch', 'Run Instance from an AMI'
   option 'ami-id', :required => true, :aliases => 'i'
+  option 'name', :required => true, :aliases => 'N'
   option 'instance-type', :aliases => 't'
   option 'availability-zone', :aliases => 'az'
   option 'security-groups', :type => :array, :aliases => 'sg'
@@ -50,7 +51,8 @@ class EC2Cli < Thor
     az = options['availability-zone'] || config().vpc['default_availability_zone']
     sec_groups = [ config().instance['default_security_group'] ]
     sec_groups.concat(options['security-groups']) if options['security-groups']
-    cli().run_instances({
+
+    resp = cli().run_instances({
       image_id:           options['ami-id'],
       instance_type:      instance_type,
       security_group_ids: sec_groups,
@@ -58,7 +60,17 @@ class EC2Cli < Thor
       max_count: 1,
       dry_run: options['dry-run'],
     })
-    puts 'Successfully launched instance.'
+    instance_id = resp.instances[0].instance_id
+    puts "Launched instance. ID=#{instance_id}"
+
+    cli().create_tags({
+      resources: [ instance_id ],
+      tags: [
+        { key: 'Name', value: options['name'] },
+      ],
+    })
+    puts "Added tag: { Name => '#{options['name']}' }"
+    puts 'Done.'
   end
 
   desc 'create-ami', 'Create AMI from an instance'
