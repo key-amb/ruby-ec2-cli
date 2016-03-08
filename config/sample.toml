@@ -6,3 +6,7 @@ default_security_group = "sg-xxxxxxxx"
 
 [vpc]
 default_availability_zone = "ap-northeast-1c"
+
+[tags]
+roles  = [ "Feature", "Role"  ]
+groups = [ "Service", "Group" ]

@@ -3,6 +3,7 @@ require 'ostruct'
 require 'thor'
 require 'toml'
 
+require 'ec2-cli/config'
 require 'ec2-cli/instance'
 
 class EC2Cli < Thor
@@ -10,10 +11,12 @@ class EC2Cli < Thor
   default_command :list
 
   desc 'list', 'List instances'
+  option 'role', :aliases => 'r'
+  option 'group', :aliases => 'g'
   def list
-    instances = EC2Cli::Instance.fetch(cli: cli())
+    instances = EC2Cli::Instance.fetch(cli: cli(), role: options['role'], group: options['group'])
     instances.each do |i|
-      puts [i.name, i.instance_id, i.status, i.ipaddress, i.public_ipaddress].join("\t")
+      puts ['%s:%s(%s){%s}'%[i.name, i.status, i.role, i.group], i.instance_id, i.ipaddress, i.public_ipaddress].join("\t")
     end
   end
 
@@ -47,9 +50,10 @@ class EC2Cli < Thor
   option 'security-groups', :type => :array, :aliases => 'sg'
   option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
   def launch
-    instance_type = options['instance-type'] || config().instance['default_instance_type']
-    az = options['availability-zone'] || config().vpc['default_availability_zone']
-    sec_groups = [ config().instance['default_security_group'] ]
+    config = Config.new
+    instance_type = options['instance-type'] || config.instance['default_instance_type']
+    az = options['availability-zone'] || config.vpc['default_availability_zone']
+    sec_groups = [ config.instance['default_security_group'] ]
     sec_groups.concat(options['security-groups']) if options['security-groups']
 
     resp = cli().run_instances({
@@ -114,7 +118,7 @@ class EC2Cli < Thor
   desc 'list-ami', 'List AMIs'
   def list_ami
     cli().describe_images(
-      owners: [ config().account_id ],
+      owners: [ Config.new.account_id ],
     ).images.each do |img|
       puts [
         img.image_id, img.name, img.state, img.creation_date
@@ -126,9 +130,5 @@ class EC2Cli < Thor
 
   def cli
     @cli ||= Aws::EC2::Client.new
-  end
-
-  def config(path: ENV['EC2CLI_CONFIG_PATH'] || 'config/ec2-cli.toml')
-    @config ||= OpenStruct.new( TOML.load_file(path) )
   end
 end
