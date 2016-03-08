@@ -73,6 +73,17 @@ class EC2Cli < Thor
     puts 'Done.'
   end
 
+  desc 'terminate', 'Terminate an instance'
+  option 'instance-id', :required => true, :aliases => 'i'
+  option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
+  def terminate
+    cli().terminate_instances({
+      instance_ids: [options['instance-id']],
+      dry_run:      options['dry-run'],
+    })
+    puts 'Successfully terminateped instance.'
+  end
+
   desc 'create-ami', 'Create AMI from an instance'
   option 'instance-id', :required => true, :aliases => 'i'
   option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
