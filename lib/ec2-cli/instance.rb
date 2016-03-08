@@ -1,5 +1,3 @@
-require 'aws-sdk-core'
-
 class EC2Cli < Thor
   class Instance
     accessors = [:instance_id, :name, :status, :ipaddress, :public_ipaddress, :instance_type]
