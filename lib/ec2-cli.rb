@@ -1,5 +1,7 @@
 require 'aws-sdk-core'
+require 'ostruct'
 require 'thor'
+require 'toml'
 
 require 'ec2-cli/instance'
 
@@ -37,6 +39,51 @@ class EC2Cli < Thor
     puts 'Successfully stopped instance.'
   end
 
+  desc 'launch', 'Run Instance from an AMI'
+  option 'ami-id', :required => true, :aliases => 'i'
+  option 'name', :required => true, :aliases => 'N'
+  option 'instance-type', :aliases => 't'
+  option 'availability-zone', :aliases => 'az'
+  option 'security-groups', :type => :array, :aliases => 'sg'
+  option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
+  def launch
+    instance_type = options['instance-type'] || config().instance['default_instance_type']
+    az = options['availability-zone'] || config().vpc['default_availability_zone']
+    sec_groups = [ config().instance['default_security_group'] ]
+    sec_groups.concat(options['security-groups']) if options['security-groups']
+
+    resp = cli().run_instances({
+      image_id:           options['ami-id'],
+      instance_type:      instance_type,
+      security_group_ids: sec_groups,
+      min_count: 1,
+      max_count: 1,
+      dry_run: options['dry-run'],
+    })
+    instance_id = resp.instances[0].instance_id
+    puts "Launched instance. ID=#{instance_id}"
+
+    cli().create_tags({
+      resources: [ instance_id ],
+      tags: [
+        { key: 'Name', value: options['name'] },
+      ],
+    })
+    puts "Added tag: { Name => '#{options['name']}' }"
+    puts 'Done.'
+  end
+
+  desc 'terminate', 'Terminate an instance'
+  option 'instance-id', :required => true, :aliases => 'i'
+  option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
+  def terminate
+    cli().terminate_instances({
+      instance_ids: [options['instance-id']],
+      dry_run:      options['dry-run'],
+    })
+    puts 'Successfully terminateped instance.'
+  end
+
   desc 'create-ami', 'Create AMI from an instance'
   option 'instance-id', :required => true, :aliases => 'i'
   option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
@@ -67,7 +114,7 @@ class EC2Cli < Thor
   desc 'list-ami', 'List AMIs'
   def list_ami
     cli().describe_images(
-      owners: [ENV['AWS_ACCOUNT_ID']],
+      owners: [ config().account_id ],
     ).images.each do |img|
       puts [
         img.image_id, img.name, img.state, img.creation_date
@@ -79,5 +126,9 @@ class EC2Cli < Thor
 
   def cli
     @cli ||= Aws::EC2::Client.new
+  end
+
+  def config(path: ENV['EC2CLI_CONFIG_PATH'])
+    @config ||= OpenStruct.new( TOML.load_file(path) )
   end
 end

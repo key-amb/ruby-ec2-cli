@@ -22,10 +22,12 @@ class EC2Cli < Thor
 
     def self.fetch(cli: nil)
       results = []
-      cli.describe_instances.reservations[0].instances.each do |i|
-        results.push(
-          new( Util.prepare_instance_params(i) )
-        )
+      cli.describe_instances.reservations.each do |r|
+        r.instances.each do |i|
+          results.push(
+            new( Util.prepare_instance_params(i) )
+          )
+        end
       end
       results
     end

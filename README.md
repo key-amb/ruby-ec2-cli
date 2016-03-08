@@ -14,6 +14,10 @@ ec2-cli stop  -i <INSTANCE_ID> [-n|--dry-run]
 
 # Create AMI
 ec2-cli create-ami -i <INSTANCE_ID> [-n|--dry-run]
+
+# Launch/Terminate instance
+ec2-cli launch -i <AMI_ID> -N <NAME_TAG> [-az AZ] [-n|--dry-run]
+ec2-cli terminate -i <INSTANCE_ID> [-n|--dry-run]
 ```
 
 # Configure
@@ -30,8 +34,10 @@ for additional information.
 In addition, you need following envvar for some commands.
 
 ```sh
-export AWS_ACCOUNT_ID=XXXXXXXXXXXX # Your AWS Account ID
+export EC2CLI_CONFIG_PATH=/path/to/config.toml
 ```
+
+You can see a sample of `config.toml` at [config/sample.toml](config/sample.toml).
 
 # LICENSE
 

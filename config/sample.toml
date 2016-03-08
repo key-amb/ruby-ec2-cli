@@ -1,0 +1,8 @@
+account_id = "123456789012"
+
+[instance]
+default_instance_type  = "t2.micro"
+default_security_group = "sg-xxxxxxxx"
+
+[vpc]
+default_availability_zone = "ap-northeast-1c"
