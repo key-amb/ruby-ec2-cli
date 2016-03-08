@@ -5,8 +5,8 @@ Mainly focused on instance operations.
 
 ```
 # List instances
-ec2-cli
-ec2-cli list
+ec2-cli [-r <Role>] [-g <Group>]
+ec2-cli list [OPTIONS]
 
 # Start/Stop instance
 ec2-cli start -i <INSTANCE_ID> [-n|--dry-run]
@@ -33,7 +33,7 @@ export AWS_SECRET_ACCESS_KEY=<Your Secret Access Key>
 ```
 
 See also [AWS SDK for Ruby v2](http://docs.aws.amazon.com/sdkforruby/api/index.html)
-for additional information.
+for more information.
 
 In addition, you need following envvar for some commands.
 
