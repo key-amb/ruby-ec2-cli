@@ -1,6 +1,9 @@
 class EC2Cli < Thor
   class Instance
-    accessors = [:instance_id, :name, :role, :group, :status, :ipaddress, :public_ipaddress, :instance_type]
+    accessors = [
+      :instance_id, :name, :role, :group, :status, :ipaddress,
+      :public_ipaddress, :instance_type, :described,
+    ]
     accessors.each do |acsr|
       attr acsr
     end
@@ -76,6 +79,7 @@ class EC2Cli < Thor
           ipaddress:        instance.private_ip_address,
           public_ipaddress: instance.public_ip_address,
           instance_type:    instance.instance_type,
+          described:        instance,
         }
       end
     end

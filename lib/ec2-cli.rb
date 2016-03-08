@@ -99,7 +99,7 @@ class EC2Cli < Thor
     t = Time.now
     image_name  = instance.name + t.strftime('.%Y%m%d_%H%M')
     description = 'Created from %s at %s'%[instance.name, t.to_s]
-    cli().create_image({
+    created = cli().create_image({
       instance_id: options['instance-id'],
       name:        image_name,
       description: description,
@@ -112,7 +112,48 @@ class EC2Cli < Thor
         { device_name: '/dev/sdp', virtual_name: 'ephemeral3' },
       ],
     })
-    puts 'Successfully created AMI.'
+    image_id = created.image_id
+    puts "Created AMI. ID=#{image_id}, name=#{image_name}"
+
+    tags = [{ key: 'Name', value: image_name}]
+    tags.concat(
+      instance.described.tags.select {|t| t.key != 'Name' },
+    )
+    cli().create_tags({
+      resources: [ image_id ],
+      tags: tags,
+    })
+    puts 'Added tags for AMI.'
+
+    snapshot_id = nil
+    try = 0
+    begin
+      cli().describe_images(
+        image_ids: [image_id],
+      ).images[0].block_device_mappings.each do |bdm|
+        next unless bdm.ebs
+        snapshot_id = bdm.ebs.snapshot_id
+      end
+      unless snapshot_id
+        raise %q[Can't find Snapshot for AMI!]
+      end
+    rescue => e
+      try += 1
+      case try
+      when 1..10
+        puts "Waiting for snapshot to be available ... #{try}"
+        sleep 30
+        retry
+      else
+        raise e.class, e.message
+      end
+    end
+
+    cli().create_tags({
+      resources: [ snapshot_id ],
+      tags: tags,
+    })
+    puts "Added tags for snapshot. ID=#{snapshot_id}"
   end
 
   desc 'list-ami', 'List AMIs'
