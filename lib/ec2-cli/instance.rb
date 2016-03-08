@@ -7,7 +7,7 @@ class EC2Cli < Thor
 
     def initialize(params)
       params.each do |key, val|
-        eval "@#{key} = val"
+        instance_variable_set("@#{key}", val)
       end
     end
 
