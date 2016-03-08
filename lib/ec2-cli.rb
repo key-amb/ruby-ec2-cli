@@ -114,7 +114,7 @@ class EC2Cli < Thor
   desc 'list-ami', 'List AMIs'
   def list_ami
     cli().describe_images(
-      owners: [ENV['AWS_ACCOUNT_ID']],
+      owners: [ config().account_id ],
     ).images.each do |img|
       puts [
         img.image_id, img.name, img.state, img.creation_date
