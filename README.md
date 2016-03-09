@@ -4,9 +4,11 @@ Handy CLI for AWS EC2 operations.
 Mainly focused on instance operations.
 
 ```
-# List instances
+# List(default)/Show instances
 ec2it [-r <Role>] [-g <Group>] [-s <INSTANCE_STATE_NAME>] [-k <Key1> <Key2> ...]
 ec2it list [OPTIONS]
+ec2it show -i <INSTANCE_ID> [-k <Key1> <Key2> ...]
+ec2it show -n <Name> [OPTIONS]
 
 # Start/Stop instance
 ec2it start -i <INSTANCE_ID> [--dry-run]
