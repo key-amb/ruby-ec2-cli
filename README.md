@@ -19,10 +19,11 @@ ec2it launch -i <AMI_ID> -n <NAME_TAG> [-az AZ] [--dry-run]
 ec2it terminate -i <INSTANCE_ID> [--dry-run]
 ec2it terminate -n <Name> [--dry-run]
 
-# Create/List AMI
+# List/Create/Delete AMI
+ec2it list-ami [-r <Role>] [-g <Group>]
 ec2it create-ami -i <INSTANCE_ID> [--dry-run]
 ec2it create-ami -n <Name> [--dry-run]
-ec2it list-ami
+ec2it delete-ami -i <AMI_ID> [--dry-run]
 
 # Show help
 ec2it help
