@@ -121,6 +121,20 @@ class EC2It < Thor
     puts 'Successfully terminateped instance.'
   end
 
+  desc 'list-ami', 'List AMIs'
+  option 'role', :aliases => 'r'
+  option 'group', :aliases => 'g'
+  def list_ami
+    images = EC2It::AMI.fetch(cli: cli(), role: options['role'], group: options['group'])
+    images.each do |i|
+      puts [
+        i.image_id,
+        '%s:%s(%s){%s}'%[i.name || i.image_name, i.status, i.role, i.group],
+        i.described.creation_date,
+      ].join("\t")
+    end
+  end
+
   desc 'create-ami', 'Create AMI from an instance'
   option 'instance-id', :aliases => 'i'
   option 'name', :aliases => 'n'
@@ -189,20 +203,6 @@ class EC2It < Thor
       tags: tags,
     })
     puts "Added tags for snapshot. ID=#{snapshot_id}"
-  end
-
-  desc 'list-ami', 'List AMIs'
-  option 'role', :aliases => 'r'
-  option 'group', :aliases => 'g'
-  def list_ami
-    images = EC2It::AMI.fetch(cli: cli(), role: options['role'], group: options['group'])
-    images.each do |i|
-      puts [
-        i.image_id,
-        '%s:%s(%s){%s}'%[i.name || i.image_name, i.status, i.role, i.group],
-        i.described.creation_date,
-      ].join("\t")
-    end
   end
 
   private
