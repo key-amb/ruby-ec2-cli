@@ -1,6 +1,6 @@
-class EC2Cli < Thor
+class EC2It < Thor
   class Config
-    def initialize(path: ENV['EC2CLI_CONFIG_PATH'] || 'config/ec2-cli.toml')
+    def initialize(path: ENV['EC2IT_CONFIG_PATH'] || 'config/ec2it.toml')
       @me ||= TOML.load_file(path)
     end
 

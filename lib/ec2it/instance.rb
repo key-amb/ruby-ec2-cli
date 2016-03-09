@@ -1,4 +1,4 @@
-class EC2Cli < Thor
+class EC2It < Thor
   class Instance
     accessors = [
       :instance_id, :name, :role, :group, :status, :ipaddress,
@@ -20,11 +20,11 @@ class EC2Cli < Thor
         instance_ids: [id]
       })
       i = resp.reservations[0].instances[0]
-      new( Util.prepare_instance_params(i, EC2Cli::Config.new) )
+      new( Util.prepare_instance_params(i, EC2It::Config.new) )
     end
 
     def self.fetch(cli: nil, role: nil, group: nil)
-      config = EC2Cli::Config.new
+      config = EC2It::Config.new
 
       args    = {}
       filters = []

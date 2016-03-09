@@ -3,18 +3,18 @@ require 'ostruct'
 require 'thor'
 require 'toml'
 
-require 'ec2-cli/config'
-require 'ec2-cli/instance'
+require 'ec2it/config'
+require 'ec2it/instance'
 
-class EC2Cli < Thor
-  package_name "ec2-cli"
+class EC2It < Thor
+  package_name "ec2it"
   default_command :list
 
   desc 'list', 'List instances'
   option 'role', :aliases => 'r'
   option 'group', :aliases => 'g'
   def list
-    instances = EC2Cli::Instance.fetch(cli: cli(), role: options['role'], group: options['group'])
+    instances = EC2It::Instance.fetch(cli: cli(), role: options['role'], group: options['group'])
     instances.each do |i|
       puts ['%s:%s(%s){%s}'%[i.name, i.status, i.role, i.group], i.instance_id, i.ipaddress, i.public_ipaddress].join("\t")
     end
@@ -92,7 +92,7 @@ class EC2Cli < Thor
   option 'instance-id', :required => true, :aliases => 'i'
   option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
   def create_ami
-    instance = EC2Cli::Instance.fetch_by_id(
+    instance = EC2It::Instance.fetch_by_id(
       cli: cli(),
       id:  options['instance-id'],
     )
