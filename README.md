@@ -9,15 +9,19 @@ ec2it [-r <Role>] [-g <Group>]
 ec2it list [OPTIONS]
 
 # Start/Stop instance
-ec2it start -i <INSTANCE_ID> [-n|--dry-run]
-ec2it stop  -i <INSTANCE_ID> [-n|--dry-run]
+ec2it start -i <INSTANCE_ID> [--dry-run]
+ec2it start -n <Name> [--dry-run]
+ec2it stop  -i <INSTANCE_ID> [--dry-run]
+ec2it stop  -n <Name> [--dry-run]
 
 # Launch/Terminate instance
-ec2it launch -i <AMI_ID> -N <NAME_TAG> [-az AZ] [-n|--dry-run]
-ec2it terminate -i <INSTANCE_ID> [-n|--dry-run]
+ec2it launch -i <AMI_ID> -n <NAME_TAG> [-az AZ] [--dry-run]
+ec2it terminate -i <INSTANCE_ID> [--dry-run]
+ec2it terminate -n <Name> [--dry-run]
 
 # Create/List AMI
-ec2it create-ami -i <INSTANCE_ID> [-n|--dry-run]
+ec2it create-ami -i <INSTANCE_ID> [--dry-run]
+ec2it create-ami -n <Name> [--dry-run]
 ec2it list-ami
 
 # Show help
