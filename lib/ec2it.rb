@@ -26,22 +26,34 @@ class EC2It < Thor
   end
 
   desc 'start', 'Start an instance'
-  option 'instance-id', :required => true, :aliases => 'i'
-  option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
+  option 'instance-id', :aliases => 'i'
+  option 'name', :aliases => 'n'
+  option 'dry-run', :type => :boolean, :default => false
   def start
+    instance = EC2It::Instance.fetch_one(
+      cli:  cli(),
+      id:   options['instance-id'],
+      name: options['name'],
+    )
     cli().start_instances({
-      instance_ids: [options['instance-id']],
+      instance_ids: [instance.instance_id],
       dry_run:      options['dry-run'],
     })
     puts 'Successfully started instance.'
   end
 
   desc 'stop', 'Stop an instance'
-  option 'instance-id', :required => true, :aliases => 'i'
-  option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
+  option 'instance-id', :aliases => 'i'
+  option 'name', :aliases => 'n'
+  option 'dry-run', :type => :boolean, :default => false
   def stop
+    instance = EC2It::Instance.fetch_one(
+      cli:  cli(),
+      id:   options['instance-id'],
+      name: options['name'],
+    )
     cli().stop_instances({
-      instance_ids: [options['instance-id']],
+      instance_ids: [instance.instance_id],
       dry_run:      options['dry-run'],
     })
     puts 'Successfully stopped instance.'
@@ -49,11 +61,11 @@ class EC2It < Thor
 
   desc 'launch', 'Run Instance from an AMI'
   option 'ami-id', :required => true, :aliases => 'i'
-  option 'name', :required => true, :aliases => 'N'
+  option 'name', :required => true, :aliases => 'n'
   option 'instance-type', :aliases => 't'
   option 'availability-zone', :aliases => 'az'
   option 'security-groups', :type => :array, :aliases => 'sg'
-  option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
+  option 'dry-run', :type => :boolean, :default => false
   def launch
     config = Config.new
     instance_type = options['instance-type'] || config.instance['default_instance_type']
@@ -83,29 +95,37 @@ class EC2It < Thor
   end
 
   desc 'terminate', 'Terminate an instance'
-  option 'instance-id', :required => true, :aliases => 'i'
-  option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
+  option 'instance-id', :aliases => 'i'
+  option 'name', :aliases => 'n'
+  option 'dry-run', :type => :boolean, :default => false
   def terminate
+    instance = EC2It::Instance.fetch_one(
+      cli:  cli(),
+      id:   options['instance-id'],
+      name: options['name'],
+    )
     cli().terminate_instances({
-      instance_ids: [options['instance-id']],
+      instance_ids: [instance.instance_id],
       dry_run:      options['dry-run'],
     })
     puts 'Successfully terminateped instance.'
   end
 
   desc 'create-ami', 'Create AMI from an instance'
-  option 'instance-id', :required => true, :aliases => 'i'
-  option 'dry-run', :type => :boolean, :default => false, :aliases => 'n'
+  option 'instance-id', :aliases => 'i'
+  option 'name', :aliases => 'n'
+  option 'dry-run', :type => :boolean, :default => false
   def create_ami
-    instance = EC2It::Instance.fetch_by_id(
-      cli: cli(),
-      id:  options['instance-id'],
+    instance = EC2It::Instance.fetch_one(
+      cli:  cli(),
+      id:   options['instance-id'],
+      name: options['name'],
     )
     t = Time.now
     image_name  = instance.name + t.strftime('.%Y%m%d_%H%M')
     description = 'Created from %s at %s'%[instance.name, t.to_s]
     created = cli().create_image({
-      instance_id: options['instance-id'],
+      instance_id: instance.instance_id,
       name:        image_name,
       description: description,
       no_reboot:   true,

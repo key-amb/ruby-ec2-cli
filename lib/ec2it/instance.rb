@@ -14,10 +14,29 @@ class EC2It < Thor
       end
     end
 
+    def self.fetch_one(cli: nil, id: nil, name: nil)
+      if id
+        return fetch_by_id(cli: cli, id: id)
+      elsif name
+        return fetch_by_name(cli: cli, name: name)
+      else
+        raise 'No id nor name specified! Please specify one.'
+      end
+    end
+
     def self.fetch_by_id(id: nil, cli: nil)
       raise 'No id specified!' unless id
       resp = cli.describe_instances({
         instance_ids: [id]
+      })
+      i = resp.reservations[0].instances[0]
+      new( Util.prepare_instance_params(i, EC2It::Config.new) )
+    end
+
+    def self.fetch_by_name(name: nil, cli: nil)
+      raise 'No name specified!' unless name
+      resp = cli.describe_instances({
+        filters: [{ name: 'tag:Name', values: [name] }],
       })
       i = resp.reservations[0].instances[0]
       new( Util.prepare_instance_params(i, EC2It::Config.new) )
