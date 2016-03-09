@@ -26,23 +26,10 @@ class EC2It < Thor
     def self.fetch(cli: nil, role: nil, group: nil)
       config = EC2It::Config.new
 
-      args    = {}
-      filters = []
-      if role
-        rls = role.split(/:/)
-        config.tags['roles'].each do |key|
-          filters.push({ name: "tag:#{key}", values: [rls.shift] })
-          break if rls.empty?
-        end
+      args = {}
+      config.params2tagfilters(role: role, group: group).tap do |f|
+        args['filters'] = f if f.length > 0
       end
-      if group
-        grps = group.split(/:/)
-        config.tags['groups'].each do |key|
-          filters.push({ name: "tag:#{key}", values: [grps.shift] })
-          break if grps.empty?
-        end
-      end
-      args['filters'] = filters if filters.length > 0
 
       results = []
       cli.describe_instances(args).reservations.each do |r|
@@ -58,29 +45,14 @@ class EC2It < Thor
 
     module Util
       def self.prepare_instance_params(instance, config)
-        name_tags = instance.tags.select { |t| t.key == 'Name' }
-
-        tag_params = {}
-        ['roles', 'groups'].each do |div|
-          tag_params[div] = []
-          config.tags[div].each do |tag_key|
-            tlist = instance.tags.select { |t| t.key == tag_key }
-            break if tlist.empty?
-            tag_params[div].push(tlist[0].value)
-          end
-        end
-
-        params = {
+        params = config.tags2params(instance.tags).merge({
           instance_id:      instance.instance_id,
-          name:             name_tags[0].value,
-          role:             tag_params['roles'].join(':'),
-          group:            tag_params['groups'].join(':'),
           status:           instance.state.name,
           ipaddress:        instance.private_ip_address,
           public_ipaddress: instance.public_ip_address,
           instance_type:    instance.instance_type,
           described:        instance,
-        }
+        })
       end
     end
   end

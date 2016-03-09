@@ -3,6 +3,7 @@ require 'ostruct'
 require 'thor'
 require 'toml'
 
+require 'ec2it/ami'
 require 'ec2it/config'
 require 'ec2it/instance'
 
@@ -16,7 +17,11 @@ class EC2It < Thor
   def list
     instances = EC2It::Instance.fetch(cli: cli(), role: options['role'], group: options['group'])
     instances.each do |i|
-      puts ['%s:%s(%s){%s}'%[i.name, i.status, i.role, i.group], i.instance_id, i.ipaddress, i.public_ipaddress].join("\t")
+      puts [
+        i.instance_id,
+        '%s:%s(%s){%s}'%[i.name, i.status, i.role, i.group],
+        i.ipaddress, i.public_ipaddress,
+      ].join("\t")
     end
   end
 
@@ -157,12 +162,15 @@ class EC2It < Thor
   end
 
   desc 'list-ami', 'List AMIs'
+  option 'role', :aliases => 'r'
+  option 'group', :aliases => 'g'
   def list_ami
-    cli().describe_images(
-      owners: [ Config.new.account_id ],
-    ).images.each do |img|
+    images = EC2It::AMI.fetch(cli: cli(), role: options['role'], group: options['group'])
+    images.each do |i|
       puts [
-        img.image_id, img.name, img.state, img.creation_date
+        i.image_id,
+        '%s:%s(%s){%s}'%[i.name || i.image_name, i.status, i.role, i.group],
+        i.described.creation_date,
       ].join("\t")
     end
   end
