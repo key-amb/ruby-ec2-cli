@@ -200,6 +200,27 @@ class EC2It < Thor
     puts "Added tags for snapshot. ID=#{snapshot_id}"
   end
 
+  desc 'delete-ami', 'Delete an AMI'
+  option 'ami-id', :required => true, :aliases => 'i'
+  option 'dry-run', :type => :boolean, :default => false
+  def delete_ami
+    config = Config.new
+    image  = EC2It::AMI.fetch_by_id(id: options['ami-id'], cli: cli())
+    snapshot_id = image.snapshot_id or raise "Can't find snapshot_id for AMI #{image.image_id}"
+
+    cli().deregister_image({
+      image_id: image.image_id,
+      dry_run:  options['dry-run'],
+    })
+    puts "Deregistered AMI. ID=#{image.image_id}, Name=#{image.image_name}"
+
+    cli().delete_snapshot({
+      snapshot_id: snapshot_id,
+      dry_run:     options['dry-run'],
+    })
+    puts "Deleted Snapshot. ID=#{snapshot_id}"
+  end
+
   private
 
   def cli
