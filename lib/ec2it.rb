@@ -13,9 +13,15 @@ class EC2It < Thor
   desc 'list', 'List instances'
   option 'role', :aliases => 'r'
   option 'group', :aliases => 'g'
+  option 'status', :aliases => 's'
   option 'keys', :type => :array, :aliases => 'k'
   def list
-    instances = EC2It::Instance.fetch(cli: cli(), role: options['role'], group: options['group'])
+    instances = EC2It::Instance.fetch(
+      cli:    cli(),
+      role:   options['role'],
+      group:  options['group'],
+      status: options['status'],
+    )
     keys = []
     if options['keys']
       keys = options['keys']

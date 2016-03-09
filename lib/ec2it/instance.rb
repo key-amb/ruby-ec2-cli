@@ -46,13 +46,18 @@ class EC2It < Thor
       new( Util.prepare_instance_params(i, EC2It::Config.new) )
     end
 
-    def self.fetch(cli: nil, role: nil, group: nil)
+    def self.fetch(cli: nil, role: nil, group: nil, status: nil)
       config = EC2It::Config.new
 
       args = {}
+      filters = []
       config.params2tagfilters(role: role, group: group).tap do |f|
-        args['filters'] = f if f.length > 0
+        filters.concat(f)
       end
+      if status
+        filters.push({ name: 'instance-state-name', values: [status] })
+      end
+      args['filters'] = filters if filters.length > 0
 
       results = []
       cli.describe_instances(args).reservations.each do |r|
