@@ -14,6 +14,15 @@ class EC2It < Thor
       end
     end
 
+    def self.fetch_by_id(id: nil, cli: nil)
+      raise 'No id specified!' unless id
+      resp = cli.describe_images({
+        image_ids: [id]
+      })
+      i = resp.images[0]
+      new( Util.prepare_image_params(i, EC2It::Config.new) )
+    end
+
     def self.fetch(cli: nil, role: nil, group: nil)
       config = EC2It::Config.new
 

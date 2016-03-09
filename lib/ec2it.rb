@@ -73,8 +73,9 @@ class EC2It < Thor
     sec_groups = [ config.instance['default_security_group'] ]
     sec_groups.concat(options['security-groups']) if options['security-groups']
 
+    image = EC2It::AMI.fetch_by_id(id: options['ami-id'], cli: cli())
     resp = cli().run_instances({
-      image_id:           options['ami-id'],
+      image_id:           image.image_id,
       instance_type:      instance_type,
       security_group_ids: sec_groups,
       min_count: 1,
@@ -84,13 +85,22 @@ class EC2It < Thor
     instance_id = resp.instances[0].instance_id
     puts "Launched instance. ID=#{instance_id}"
 
+    tags = [{ key: 'Name', value: options['name'] }]
+    tags.concat(
+      image.described.tags.select {|t| t.key != 'Name' },
+    )
     cli().create_tags({
       resources: [ instance_id ],
-      tags: [
-        { key: 'Name', value: options['name'] },
-      ],
+      tags: tags,
     })
-    puts "Added tag: { Name => '#{options['name']}' }"
+    puts 'Added tags:'
+    t_list = []
+    tags.each do |t|
+      key   = t['key']   || t[:key]
+      value = t['value'] || t[:value]
+      t_list.push('{%s => %s}'%[key, value])
+    end
+    p t_list.join(%q{,})
     puts 'Done.'
   end
 
@@ -140,7 +150,7 @@ class EC2It < Thor
     image_id = created.image_id
     puts "Created AMI. ID=#{image_id}, name=#{image_name}"
 
-    tags = [{ key: 'Name', value: image_name}]
+    tags = [{ key: 'Name', value: image_name }]
     tags.concat(
       instance.described.tags.select {|t| t.key != 'Name' },
     )
