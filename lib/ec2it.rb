@@ -13,10 +13,21 @@ class EC2It < Thor
   desc 'list', 'List instances'
   option 'role', :aliases => 'r'
   option 'group', :aliases => 'g'
+  option 'keys', :type => :array, :aliases => 'k'
   def list
     instances = EC2It::Instance.fetch(cli: cli(), role: options['role'], group: options['group'])
+    keys = []
+    if options['keys']
+      keys = options['keys']
+    else
+      keys = %w[instance_id disp_info ipaddress public_ipaddress]
+    end
     instances.each do |i|
-      puts [ i.instance_id, i.disp_info, i.ipaddress, i.public_ipaddress ].join("\t")
+      values = []
+      keys.each do |k|
+        values.push(i.send(k))
+      end
+      puts values.join("\t")
     end
   end
 
