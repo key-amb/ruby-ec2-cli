@@ -22,12 +22,7 @@ class EC2It < Thor
       group:  options['group'],
       status: options['status'],
     )
-    keys = []
-    if options['keys']
-      keys = options['keys']
-    else
-      keys = %w[instance_id disp_info ipaddress public_ipaddress]
-    end
+    keys = options['keys'] ? options['keys'] : default_instance_keys()
     instances.each do |i|
       values = []
       keys.each do |k|
@@ -35,6 +30,24 @@ class EC2It < Thor
       end
       puts values.join("\t")
     end
+  end
+
+  desc 'show', 'Show an instance'
+  option 'instance-id', :aliases => 'i'
+  option 'name', :aliases => 'n'
+  option 'keys', :type => :array, :aliases => 'k'
+  def show
+    instance = EC2It::Instance.fetch_one(
+      cli:  cli(),
+      id:   options['instance-id'],
+      name: options['name'],
+    )
+    keys = options['keys'] ? options['keys'] : default_instance_keys()
+    values = []
+    keys.each do |k|
+      values.push(instance.send(k))
+    end
+    puts values.join("\t")
   end
 
   desc 'start', 'Start an instance'
@@ -233,5 +246,9 @@ class EC2It < Thor
 
   def cli
     @cli ||= Aws::EC2::Client.new
+  end
+
+  def default_instance_keys
+    %w[instance_id disp_info ipaddress public_ipaddress]
   end
 end
