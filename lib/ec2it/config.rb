@@ -42,13 +42,13 @@ class EC2It < Thor
       filters
     end
 
-    private
-
     def str2tagfilter(key: nil, str: nil)
       filters = []
       tagkeys = self.tags[key]
-      string.split(/:/).each do |str|
-        filters.push({ name: "tag:#{tagkeys.shift}", values: str })
+      i = 0
+      str.split(/:/).each do |str|
+        filters.push({ name: "tag:#{tagkeys[i]}", values: [str] })
+        i += 1
       end
       filters
     end
