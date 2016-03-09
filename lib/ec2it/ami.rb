@@ -43,6 +43,14 @@ class EC2It < Thor
       results
     end
 
+    def snapshot_id
+      return @snapshot_id if @snapshot_id
+      self.described.block_device_mappings.each do |bdm|
+        next unless bdm.ebs
+        return @snapshot_id = bdm.ebs.snapshot_id
+      end
+    end
+
     module Util
       def self.prepare_image_params(image, config)
         params = config.tags2params(image.tags).merge({

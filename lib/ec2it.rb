@@ -177,12 +177,7 @@ class EC2It < Thor
     snapshot_id = nil
     try = 0
     begin
-      cli().describe_images(
-        image_ids: [image_id],
-      ).images[0].block_device_mappings.each do |bdm|
-        next unless bdm.ebs
-        snapshot_id = bdm.ebs.snapshot_id
-      end
+      snapshot_id = EC2It::AMI.fetch_by_id(id: image_id, cli: cli()).snapshot_id
       unless snapshot_id
         raise %q[Can't find Snapshot for AMI!]
       end
