@@ -5,7 +5,7 @@ Mainly focused on instance operations.
 
 ```
 # List instances
-ec2it [-r <Role>] [-g <Group>] [-k <Key1> <Key2> ...]
+ec2it [-r <Role>] [-g <Group>] [-s <INSTANCE_STATE_NAME>] [-k <Key1> <Key2> ...]
 ec2it list [OPTIONS]
 
 # Start/Stop instance
