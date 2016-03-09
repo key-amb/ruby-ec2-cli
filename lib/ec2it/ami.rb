@@ -1,8 +1,8 @@
 class EC2It < Thor
   class AMI
     accessors = [
-      :image_id, :image_name, :name, :role, :group,
-      :status, :base_name, :described,
+      :image_id, :image_name, :name, :role, :group, :status, :base_name,
+      :disp_name, :disp_role, :disp_group, :disp_info, :described
     ]
     accessors.each do |acsr|
       attr acsr
@@ -12,6 +12,10 @@ class EC2It < Thor
       params.each do |key, val|
         instance_variable_set("@#{key}", val)
       end
+      @disp_name  = @name || @image_name
+      @disp_role  = @role.length > 0 ? @role : 'nil'
+      @disp_group = @group.length > 0 ? @group : 'nil'
+      @disp_info  = '%s:%s(%s){%s}'%[@disp_name, @status, @disp_role, @disp_group]
     end
 
     def self.fetch_by_id(id: nil, cli: nil)

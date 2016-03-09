@@ -1,5 +1,4 @@
 require 'aws-sdk-core'
-require 'ostruct'
 require 'thor'
 require 'toml'
 
@@ -17,11 +16,7 @@ class EC2It < Thor
   def list
     instances = EC2It::Instance.fetch(cli: cli(), role: options['role'], group: options['group'])
     instances.each do |i|
-      puts [
-        i.instance_id,
-        '%s:%s(%s){%s}'%[i.name, i.status, i.role, i.group],
-        i.ipaddress, i.public_ipaddress,
-      ].join("\t")
+      puts [ i.instance_id, i.disp_info, i.ipaddress, i.public_ipaddress ].join("\t")
     end
   end
 
@@ -127,11 +122,7 @@ class EC2It < Thor
   def list_ami
     images = EC2It::AMI.fetch(cli: cli(), role: options['role'], group: options['group'])
     images.each do |i|
-      puts [
-        i.image_id,
-        '%s:%s(%s){%s}'%[i.name || i.image_name, i.status, i.role, i.group],
-        i.described.creation_date,
-      ].join("\t")
+      puts [i.image_id, i.disp_info, i.described.creation_date].join("\t")
     end
   end
 
