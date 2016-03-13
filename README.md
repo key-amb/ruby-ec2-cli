@@ -1,4 +1,4 @@
-# ec2it
+# ec2it [![Build Status](https://travis-ci.org/key-amb/ruby-ec2it.svg?branch=master)](https://travis-ci.org/key-amb/ruby-ec2it)
 
 Handy CLI for AWS EC2 operations.  
 Mainly focused on instance operations.
