@@ -92,7 +92,7 @@ class EC2It < Thor
   option 'security-groups', :type => :array, :aliases => 'sg'
   option 'dry-run', :type => :boolean, :default => false
   def launch
-    config = Config.new
+    config = Config.instance
     instance_type = options['instance-type'] || config.instance['default_instance_type']
     az = options['availability-zone'] || config.vpc['default_availability_zone']
     sec_groups = [ config.instance['default_security_group'] ]
@@ -225,7 +225,7 @@ class EC2It < Thor
   option 'ami-id', :required => true, :aliases => 'i'
   option 'dry-run', :type => :boolean, :default => false
   def delete_ami
-    config = Config.new
+    config = Config.instance
     image  = EC2It::AMI.fetch_by_id(id: options['ami-id'], cli: cli())
     snapshot_id = image.snapshot_id or raise "Can't find snapshot_id for AMI #{image.image_id}"
 

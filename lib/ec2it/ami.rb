@@ -24,11 +24,11 @@ class EC2It < Thor
         image_ids: [id]
       })
       i = resp.images[0]
-      new( Util.prepare_image_params(i, EC2It::Config.new) )
+      new( Util.prepare_image_params(i) )
     end
 
     def self.fetch(cli: nil, role: nil, group: nil)
-      config = EC2It::Config.new
+      config = EC2It::Config.instance
 
       args = {
         owners: [ config.account_id ],
@@ -56,7 +56,9 @@ class EC2It < Thor
     end
 
     module Util
-      def self.prepare_image_params(image, config)
+      module_function
+      def prepare_image_params(image, config=nil)
+        config ||= EC2It::Config.instance
         params = config.tags2params(image.tags).merge({
           image_id:   image.image_id,
           image_name: image.name,

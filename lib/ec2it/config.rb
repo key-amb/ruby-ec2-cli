@@ -1,7 +1,12 @@
+require 'singleton'
+
 class EC2It < Thor
   class Config
+    include Singleton
+    @me = nil
+
     def initialize(path: ENV['EC2IT_CONFIG_PATH'] || 'config/ec2it.toml')
-      @me ||= TOML.load_file(path)
+      @me = TOML.load_file(path)
     end
 
     def method_missing(method)
@@ -37,10 +42,12 @@ class EC2It < Thor
 
     def params2tagfilters(role: nil, group: nil)
       filters = []
-      filters.concat( self.str2tagfilter(key: 'roles', str: role) ) if role
-      filters.concat( self.str2tagfilter(key: 'groups', str: group) ) if group
+      filters.concat( str2tagfilter(key: 'roles', str: role) ) if role
+      filters.concat( str2tagfilter(key: 'groups', str: group) ) if group
       filters
     end
+
+    private
 
     def str2tagfilter(key: nil, str: nil)
       filters = []

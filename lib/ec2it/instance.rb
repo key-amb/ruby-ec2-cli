@@ -34,7 +34,7 @@ class EC2It < Thor
         instance_ids: [id]
       })
       i = resp.reservations[0].instances[0]
-      new( Util.prepare_instance_params(i, EC2It::Config.new) )
+      new( Util.prepare_instance_params(i) )
     end
 
     def self.fetch_by_name(name: nil, cli: nil)
@@ -43,11 +43,11 @@ class EC2It < Thor
         filters: [{ name: 'tag:Name', values: [name] }],
       })
       i = resp.reservations[0].instances[0]
-      new( Util.prepare_instance_params(i, EC2It::Config.new) )
+      new( Util.prepare_instance_params(i) )
     end
 
     def self.fetch(cli: nil, role: nil, group: nil, status: nil)
-      config = EC2It::Config.new
+      config = EC2It::Config.instance
 
       args = {}
       filters = []
@@ -72,7 +72,9 @@ class EC2It < Thor
     end
 
     module Util
-      def self.prepare_instance_params(instance, config)
+      module_function
+      def prepare_instance_params(instance, config=nil)
+        config ||= EC2It::Config.instance
         params = config.tags2params(instance.tags).merge({
           instance_id:      instance.instance_id,
           status:           instance.state.name,
