@@ -1,4 +1,5 @@
 require 'singleton'
+require 'thor'
 
 class EC2It < Thor
   class Config
