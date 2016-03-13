@@ -7,6 +7,8 @@ require 'ec2it/config'
 require 'ec2it/instance'
 
 class EC2It < Thor
+  VERSION = '0.1.0'
+
   package_name "ec2it"
   default_command :list
 
