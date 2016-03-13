@@ -40,9 +40,11 @@ describe 'EC2It::Config' do
       expect(config.me).to match config_stash
     end
 
-    config_stash.each_pair do |key, value|
-      it "Top level key '#{key}' is readable accessor" do
-        expect( config.send(key) ).to match value
+    describe 'Top level keys are readable accessors' do
+      config_stash.each_pair do |key, value|
+        it "key '#{key}'" do
+          expect( config.send(key) ).to match value
+        end
       end
     end
   end
