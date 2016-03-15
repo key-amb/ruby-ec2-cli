@@ -2,6 +2,7 @@ require 'aws-sdk-core'
 require 'thor'
 require 'toml'
 
+require 'ec2it'
 require 'ec2it/ami'
 require 'ec2it/config'
 require 'ec2it/instance'
@@ -10,6 +11,7 @@ class EC2It::CLI < Thor
 
   package_name "ec2it"
   default_command :list
+  class_option 'config', :aliases => 'c'
 
   desc 'list', 'List instances'
   option 'role', :aliases => 'r'
@@ -17,6 +19,7 @@ class EC2It::CLI < Thor
   option 'status', :aliases => 's'
   option 'keys', :type => :array, :aliases => 'k'
   def list
+    cfg = config(options['config'])
     instances = EC2It::Instance.fetch(
       cli:    cli(),
       role:   options['role'],
@@ -40,6 +43,7 @@ class EC2It::CLI < Thor
   option 'name', :aliases => 'n'
   option 'keys', :type => :array, :aliases => 'k'
   def show
+    cfg = config(options['config'])
     instance = EC2It::Instance.fetch_one(
       cli:  cli(),
       id:   options['instance-id'],
@@ -67,7 +71,7 @@ class EC2It::CLI < Thor
       instance_ids: [instance.instance_id],
       dry_run:      options['dry-run'],
     })
-    puts 'Successfully started instance.'
+    puts "Successfully started instance. #{instance.disp_info}"
   end
 
   desc 'stop', 'Stop an instance'
@@ -75,6 +79,7 @@ class EC2It::CLI < Thor
   option 'name', :aliases => 'n'
   option 'dry-run', :type => :boolean, :default => false
   def stop
+    cfg = config(options['config'])
     instance = EC2It::Instance.fetch_one(
       cli:  cli(),
       id:   options['instance-id'],
@@ -84,7 +89,7 @@ class EC2It::CLI < Thor
       instance_ids: [instance.instance_id],
       dry_run:      options['dry-run'],
     })
-    puts 'Successfully stopped instance.'
+    puts "Successfully stopped instance. ID=#{instance.disp_info}"
   end
 
   desc 'launch', 'Run Instance from an AMI'
@@ -95,13 +100,13 @@ class EC2It::CLI < Thor
   option 'security-groups', :type => :array, :aliases => 'sg'
   option 'dry-run', :type => :boolean, :default => false
   def launch
-    config = Config.instance
-    instance_type = options['instance-type'] || config.instance['default_instance_type']
-    az = options['availability-zone'] || config.vpc['default_availability_zone']
-    sec_groups = [ config.instance['default_security_group'] ]
+    cfg = config(options['config'])
+    instance_type = options['instance-type'] || cfg.instance['default_instance_type']
+    az = options['availability-zone'] || cfg.vpc['default_availability_zone']
+    sec_groups = [ cfg.instance['default_security_group'] ]
     sec_groups.concat(options['security-groups']) if options['security-groups']
 
-    image = EC2It::AMI.fetch_by_id(id: options['ami-id'], cli: cli())
+    image = EC2It::AMI.fetch_by_id(options['ami-id'], cli: cli())
     resp = cli().run_instances({
       image_id:           image.image_id,
       instance_type:      instance_type,
@@ -137,6 +142,7 @@ class EC2It::CLI < Thor
   option 'name', :aliases => 'n'
   option 'dry-run', :type => :boolean, :default => false
   def terminate
+    cfg = config(options['config'])
     instance = EC2It::Instance.fetch_one(
       cli:  cli(),
       id:   options['instance-id'],
@@ -166,6 +172,7 @@ class EC2It::CLI < Thor
   option 'name', :aliases => 'n'
   option 'dry-run', :type => :boolean, :default => false
   def create_ami
+    cfg = config(options['config'])
     instance = EC2It::Instance.fetch_one(
       cli:  cli(),
       id:   options['instance-id'],
@@ -203,7 +210,7 @@ class EC2It::CLI < Thor
     snapshot_id = nil
     try = 0
     begin
-      snapshot_id = EC2It::AMI.fetch_by_id(id: image_id, cli: cli()).snapshot_id
+      snapshot_id = EC2It::AMI.fetch_by_id(image_id, cli: cli()).snapshot_id
       unless snapshot_id
         raise %q[Can't find Snapshot for AMI!]
       end
@@ -230,8 +237,8 @@ class EC2It::CLI < Thor
   option 'ami-id', :required => true, :aliases => 'i'
   option 'dry-run', :type => :boolean, :default => false
   def delete_ami
-    config = Config.instance
-    image  = EC2It::AMI.fetch_by_id(id: options['ami-id'], cli: cli())
+    cfg = config(options['config'])
+    image = EC2It::AMI.fetch_by_id(options['ami-id'], cli: cli())
     snapshot_id = image.snapshot_id or raise "Can't find snapshot_id for AMI #{image.image_id}"
 
     cli().deregister_image({
@@ -247,10 +254,70 @@ class EC2It::CLI < Thor
     puts "Deleted Snapshot. ID=#{snapshot_id}"
   end
 
+  desc 'set-role', 'Add or Overwrite role of Instance or AMI'
+  option 'id', :aliases => 'i'
+  option 'instance-name', :aliases => 'n'
+  option 'role', :required => true, :aliases => 'r'
+  option 'dry-run', :type => :boolean, :default => false
+  def set_role
+    cfg = config(options['config'])
+    if id = options['id']
+      # do nothing
+    elsif name = options['instance-name']
+      id = EC2It::Instance.fetch_by_name(
+        options['instance-name'], cli: cli()).instance_id
+    else
+      raise 'Options are invalid! Please specify ID or Instance name'
+    end
+    unless id
+    end
+    tags = cfg.params2tags(role: options['role'])
+    cli().create_tags({
+      resources: [ id ],
+      tags:      tags,
+      dry_run:   options['dry-run'],
+    })
+    puts "Set role=#{options['role']} for resource:#{id}."
+  end
+
+  desc 'set-group', 'Add or Overwrite group of Instance or AMI'
+  option 'id', :aliases => 'i'
+  option 'instance-name', :aliases => 'n'
+  option 'group', :required => true, :aliases => 'g'
+  option 'dry-run', :type => :boolean, :default => false
+  def set_group
+    cfg = config(options['config'])
+    if id = options['id']
+      # do nothing
+    elsif name = options['instance-name']
+      id = EC2It::Instance.fetch_by_name(
+        options['instance-name'], cli: cli()).instance_id
+    else
+      raise 'Options are invalid! Please specify ID or Instance name'
+    end
+    unless id
+    end
+    tags = cfg.params2tags(group: options['group'])
+    cli().create_tags({
+      resources: [ id ],
+      tags:      tags,
+      dry_run:   options['dry-run'],
+    })
+    puts "Set group=#{options['group']} for resource:#{id}."
+  end
+
   private
 
   def cli
     @cli ||= Aws::EC2::Client.new
+  end
+
+  def config(path=nil)
+    @config ||= proc {
+      args = []
+      args.push(path) if path
+      EC2It::Config.get_or_new(*args)
+    }.call
   end
 
   def default_instance_keys

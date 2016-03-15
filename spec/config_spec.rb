@@ -26,18 +26,22 @@ tmp = Tempfile.open('tmp') do |fp|
 end
 
 class EC2It::Config
-  def me
-    @me
+  def to_hash
+    stash = {}
+    self.instance_variables.each do |acc|
+      key = acc.to_s[1, acc.length]
+      stash[key] = instance_variable_get(acc)
+    end
+    stash
   end
 end
 
 describe 'EC2It::Config' do
-  ENV['EC2IT_CONFIG_PATH'] = tmp.path
-  config = EC2It::Config.instance
+  config = EC2It::Config.new(tmp.path)
 
   describe 'Config initialization' do
     it 'Match with TOML' do
-      expect(config.me).to match config_stash
+      expect(config.to_hash).to match config_stash
     end
 
     describe 'Top level keys are readable accessors' do
