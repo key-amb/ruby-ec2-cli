@@ -3,6 +3,8 @@
 Handy CLI for AWS EC2 operations.  
 Mainly focused on instance operations.
 
+# Usage
+
 ```
 # List(default)/Show instances
 ec2it [-r <{Role}>] [-g <{Group}>] [-s <INSTANCE_STATE_NAME>] [-k <Key1> <Key2> ...]
@@ -43,6 +45,15 @@ ec2it help
 
 As for `{Role}` and `{Group}`, see below description and samples.
 
+## Options
+
+`-c --config=/path/to/config.toml` is an only global option for CLI.
+You can skip this option if you set `$EC2IT_CONFIG_PATH` as environment variable.
+
+```sh
+export EC2IT_CONFIG_PATH=/path/to/config.toml
+```
+
 # Configure
 
 ```sh
@@ -53,12 +64,6 @@ export AWS_SECRET_ACCESS_KEY=<Your Secret Access Key>
 
 See also [AWS SDK for Ruby v2](http://docs.aws.amazon.com/sdkforruby/api/index.html)
 for more information.
-
-In addition, you need following envvar for some commands.
-
-```sh
-export EC2IT_CONFIG_PATH=/path/to/config.toml
-```
 
 You can see a sample of `config.toml` at [config/sample.toml](config/sample.toml).
 
