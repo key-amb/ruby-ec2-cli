@@ -24,7 +24,9 @@ class EC2It::CLI < Thor
       status: options['status'],
     )
     keys = options['keys'] ? options['keys'] : default_instance_keys()
-    instances.each do |i|
+    instances.sort { |a,b|
+      a.name <=> b.name
+    }.each do |i|
       values = []
       keys.each do |k|
         values.push(i.send(k))
@@ -152,7 +154,9 @@ class EC2It::CLI < Thor
   option 'group', :aliases => 'g'
   def list_ami
     images = EC2It::AMI.fetch(cli: cli(), role: options['role'], group: options['group'])
-    images.each do |i|
+    images.sort { |a,b|
+      a.disp_name <=> b.disp_name
+    }.each do |i|
       puts [i.image_id, i.disp_info, i.described.creation_date].join("\t")
     end
   end
