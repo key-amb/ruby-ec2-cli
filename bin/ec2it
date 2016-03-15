@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
 $LOAD_PATH.push(File.expand_path('../../lib', __FILE__))
-require 'ec2it'
+require 'ec2it/cli'
 
-EC2It.start(ARGV)
+EC2It::CLI.start(ARGV)
