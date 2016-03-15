@@ -5,7 +5,7 @@ Mainly focused on instance operations.
 
 # Usage
 
-```sh
+```
 # List(default)/Show instances
 ec2it [-r <{Role}>] [-g <{Group}>] [-s <INSTANCE_STATE_NAME>] [-k <Key1> <Key2> ...]
 ec2it list [OPTIONS]
