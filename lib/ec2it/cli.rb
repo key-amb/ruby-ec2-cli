@@ -89,7 +89,7 @@ class EC2It::CLI < Thor
       instance_ids: [instance.instance_id],
       dry_run:      options['dry-run'],
     })
-    puts "Successfully stopped instance. ID=#{instance.disp_info}"
+    puts "Successfully stopped instance. #{instance.disp_info}"
   end
 
   desc 'launch', 'Run Instance from an AMI'
@@ -152,7 +152,7 @@ class EC2It::CLI < Thor
       instance_ids: [instance.instance_id],
       dry_run:      options['dry-run'],
     })
-    puts 'Successfully terminateped instance.'
+    puts "Successfully terminated instance. #{instance.disp_info}"
   end
 
   desc 'list-ami', 'List AMIs'
@@ -217,9 +217,9 @@ class EC2It::CLI < Thor
     rescue => e
       try += 1
       case try
-      when 1..10
+      when 1..20
         puts "Waiting for snapshot to be available ... #{try}"
-        sleep 30
+        sleep 10
         retry
       else
         raise e.class, e.message
